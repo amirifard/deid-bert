@@ -1,69 +1,19 @@
-"""Fine‑tune BERT on de‑identification."""
 
-import argparse, pathlib, json, torch
-from transformers import (
-    AutoTokenizer,
-    AutoModelForTokenClassification,
-    DataCollatorForTokenClassification,
-    Trainer,
-    TrainingArguments,
-)
+import argparse, json, pathlib
 from datasets import load_from_disk
+from transformers import (AutoModelForTokenClassification, AutoTokenizer, DataCollatorForTokenClassification, Trainer, TrainingArguments)
 from .utils import set_seed, get_logger
-
-logger = get_logger(__name__)
-
-
-def get_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("--dataset", required=True, help="Name of processed dataset dir")
-    p.add_argument("--model_name", default="bert-base-uncased")
-    p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--lr", type=float, default=5e-5)
-    p.add_argument("--output_dir", default="outputs")
-    return p.parse_args()
-
-
+logger=get_logger(__name__)
 def main():
-    args = get_args()
-    set_seed()
-    dataset = load_from_disk(f"data/processed/tokenised/{args.dataset}")
-    label_list = dataset["train"].features["labels"].feature.names
-    num_labels = len(label_list)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_fast=True)
-    model = AutoModelForTokenClassification.from_pretrained(
-        args.model_name, num_labels=num_labels
-    )
-
-    data_collator = DataCollatorForTokenClassification(tokenizer)
-    training_args = TrainingArguments(
-        output_dir=f"{args.output_dir}/{args.dataset}",
-        num_train_epochs=args.epochs,
-        learning_rate=args.lr,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=32,
-        logging_steps=50,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        report_to="none",
-    )
-
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=dataset["train"],
-        eval_dataset=dataset["validation"],
-        tokenizer=tokenizer,
-        data_collator=data_collator,
-    )
-    trainer.train()
-    metrics = trainer.evaluate(dataset["test"])
-    with open(
-        f"{args.output_dir}/{args.dataset}/metrics.json", "w", encoding="utf8"
-    ) as f:
-        json.dump(metrics, f, indent=2)
-    logger.info("Training complete.")
-
-
-if __name__ == "__main__":
-    main()
+    ap=argparse.ArgumentParser(); ap.add_argument("--dataset",default="physionet"); ap.add_argument("--model_name",default="bert-base-uncased"); ap.add_argument("--epochs",type=int,default=1)
+    args=ap.parse_args(); set_seed()
+    ds=load_from_disk(f"data/processed/tokenised/{args.dataset}")
+    num_labels=len(ds["train"].features["labels"].feature.names)
+    model=AutoModelForTokenClassification.from_pretrained(args.model_name,num_labels=num_labels)
+    tok=AutoTokenizer.from_pretrained(args.model_name, use_fast=True)
+    coll=DataCollatorForTokenClassification(tok)
+    targs=TrainingArguments(output_dir=f"outputs/{args.dataset}",num_train_epochs=args.epochs,per_device_train_batch_size=4,evaluation_strategy="epoch",save_strategy="epoch",logging_steps=10,report_to="none")
+    trainer=Trainer(model=model,args=targs,train_dataset=ds["train"],eval_dataset=ds["validation"],tokenizer=tok,data_collator=coll)
+    trainer.train(); trainer.save_model(f"outputs/{args.dataset}/checkpoint")
+    with open(f"outputs/{args.dataset}/metrics.json","w") as f: json.dump(trainer.evaluate(ds["test"]),f)
+if __name__=="__main__": main()
