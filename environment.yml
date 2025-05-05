@@ -1,0 +1,20 @@
+name: deid-bert
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - cuda-toolkit
+  - transformers>=4.39
+  - datasets
+  - scikit-learn
+  - pandas
+  - matplotlib
+  - jupyterlab
+  - pyhealth
+  - black
+  - isort
+  - pre-commit
