@@ -10,8 +10,8 @@ halves false‑negatives at 99 % recall, and contributes a reusable
 
 | Deliverable | Link |
 |-------------|------|
-| **Final report (PDF)** | [`report/Final Report.pdf`](report/Final Report.pdf) |
-| **slide deck (PPTX)** | [`slides/deid_presentation.pptx`](slides/deid_presentation.pptx) |
+| **Final report (PDF)** | [report/Final Report.pdf] |
+| **slide deck (PPTX)** | [`slide/deid_presentation.pptx`](slide/deid_presentation.pptx) |
 | **PyHealth pull‑request** | <https://github.com/sunlabuiuc/PyHealth/pull/412> |
 
 > **Author:** Mohamadhossein Amirifardchime (`ma144`)   •    
